@@ -30,45 +30,79 @@ def on_startup():
 # ── Dashboard ──────────────────────────────────────────────────────────────
 
 @app.get("/", response_class=HTMLResponse)
-def dashboard(request: Request, db: Session = Depends(get_db)):
+def dashboard(request: Request, period: str = "today", db: Session = Depends(get_db)):
     today = date.today()
-    yesterday = today - timedelta(days=1)
+
+    periods = {
+        "today":     (today, today),
+        "yesterday": (today - timedelta(days=1), today - timedelta(days=1)),
+        "7d":        (today - timedelta(days=6), today),
+        "30d":       (today - timedelta(days=29), today),
+        "month":     (today.replace(day=1), today),
+    }
+    date_from, date_to = periods.get(period, periods["today"])
+    prev_from = date_from - (date_to - date_from + timedelta(days=1))
+    prev_to   = date_from - timedelta(days=1)
 
     accounts = db.query(AdAccount).filter(AdAccount.is_active == True).order_by(AdAccount.platform).all()
 
     rows = []
-    totals_today = {"spend": 0, "impressions": 0, "clicks": 0, "conversions": 0}
+    totals = {"spend": 0, "impressions": 0, "clicks": 0, "conversions": 0}
+    prev_totals = {"spend": 0}
 
     for acc in accounts:
-        t = db.query(AdStats).filter(AdStats.account_id == acc.id, AdStats.date == today).first()
-        y = db.query(AdStats).filter(AdStats.account_id == acc.id, AdStats.date == yesterday).first()
-        status = _status(t, y)
+        from sqlalchemy import func as sqlfunc
+        cur = db.query(
+            sqlfunc.sum(AdStats.spend).label("spend"),
+            sqlfunc.sum(AdStats.impressions).label("impressions"),
+            sqlfunc.sum(AdStats.clicks).label("clicks"),
+            sqlfunc.sum(AdStats.conversions).label("conversions"),
+        ).filter(
+            AdStats.account_id == acc.id,
+            AdStats.date >= date_from,
+            AdStats.date <= date_to,
+        ).first()
 
-        if t:
-            totals_today["spend"]       += t.spend
-            totals_today["impressions"] += t.impressions
-            totals_today["clicks"]      += t.clicks
-            totals_today["conversions"] += t.conversions
+        prv = db.query(sqlfunc.sum(AdStats.spend)).filter(
+            AdStats.account_id == acc.id,
+            AdStats.date >= prev_from,
+            AdStats.date <= prev_to,
+        ).scalar() or 0
+
+        spend    = float(cur.spend or 0)
+        impr     = int(cur.impressions or 0)
+        clicks   = int(cur.clicks or 0)
+        convs    = int(cur.conversions or 0)
+        ctr      = (clicks / impr * 100) if impr > 0 else 0
+        pct_chg  = ((spend - prv) / prv * 100) if prv > 0 else None
+
+        totals["spend"]       += spend
+        totals["impressions"] += impr
+        totals["clicks"]      += clicks
+        totals["conversions"] += convs
+        prev_totals["spend"]  += prv
 
         rows.append({
             "account": acc,
-            "today":   t,
-            "yesterday": y,
-            "status":  status,
+            "spend":   spend,
+            "impr":    impr,
+            "clicks":  clicks,
+            "ctr":     ctr,
+            "convs":   convs,
+            "pct_chg": pct_chg,
+            "status":  _status_val(spend, float(prv)),
             "icon":    PLATFORM_ICONS.get(acc.platform, "📊"),
         })
 
-    total_ctr = (
-        totals_today["clicks"] / totals_today["impressions"] * 100
-        if totals_today["impressions"] > 0 else 0
-    )
+    total_ctr    = (totals["clicks"] / totals["impressions"] * 100) if totals["impressions"] > 0 else 0
+    total_pct    = ((totals["spend"] - prev_totals["spend"]) / prev_totals["spend"] * 100) if prev_totals["spend"] > 0 else None
 
-    chart_data = _chart_data(db, today, accounts)
+    chart_data   = _chart_data(db, today, accounts)
 
     top_creatives = (
         db.query(AdCreative, AdAccount)
         .join(AdAccount, AdCreative.account_id == AdAccount.id)
-        .filter(AdCreative.date == today)
+        .filter(AdCreative.date >= date_from, AdCreative.date <= date_to)
         .order_by(AdCreative.spend.desc())
         .limit(10)
         .all()
@@ -76,12 +110,17 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
 
     return templates.TemplateResponse(request, "dashboard.html", {
         "rows":           rows,
-        "totals":         totals_today,
+        "totals":         totals,
         "total_ctr":      total_ctr,
+        "total_pct":      total_pct,
         "chart_data":     chart_data,
         "today":          today,
         "account_count":  len(accounts),
         "top_creatives":  top_creatives,
+        "period":         period,
+        "date_from":      date_from,
+        "date_to":        date_to,
+        "icons":          PLATFORM_ICONS,
     })
 
 
@@ -185,6 +224,18 @@ def global_sync():
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────
+
+def _status_val(spend: float, prev_spend: float) -> str:
+    if prev_spend == 0:
+        return "gray"
+    threshold = float(os.getenv("ALERT_THRESHOLD_PCT", 30)) / 100
+    drop = (prev_spend - spend) / prev_spend
+    if drop > threshold:
+        return "red"
+    if drop > threshold / 2:
+        return "yellow"
+    return "green"
+
 
 def _status(today, yesterday) -> str:
     if not today or not yesterday or yesterday.spend == 0:

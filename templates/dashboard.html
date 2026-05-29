@@ -3,397 +3,376 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>🦍 ADS GORILLA</title>
-  <meta http-equiv="refresh" content="300">
+  <title>ADS GORILLA</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@500;700&display=swap');
-
     :root {
-      --bg:        #060a06;
-      --bg2:       #0b120b;
-      --bg3:       #0f1a0f;
-      --green:     #00e676;
-      --green-dim: #00994d;
-      --green-glow:#00e67640;
-      --red:       #ff1744;
-      --yellow:    #ffd600;
-      --gray:      #2a3a2a;
-      --text:      #c8ffc8;
-      --muted:     #3a6a3a;
-      --border:    #1a3a1a;
+      --bg:       #0e0e0e;
+      --card:     #181818;
+      --card2:    #1f1f1f;
+      --border:   #2a2a2a;
+      --green:    #22c55e;
+      --green-bg: rgba(34,197,94,.1);
+      --red:      #ef4444;
+      --yellow:   #f59e0b;
+      --blue:     #3b82f6;
+      --text:     #f0f0f0;
+      --sub:      #888;
+      --muted:    #555;
     }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; }
 
-    * { box-sizing: border-box; }
+    .layout { display: flex; min-height: 100vh; }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 15px;
-      min-height: 100vh;
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 220px; background: var(--card); border-right: 1px solid var(--border);
+      padding: 24px 0; flex-shrink: 0; display: flex; flex-direction: column;
     }
+    .sidebar-logo {
+      padding: 0 20px 24px; border-bottom: 1px solid var(--border);
+      font-size: 1.1rem; font-weight: 700; color: var(--text);
+    }
+    .sidebar-logo span { color: var(--green); }
+    .sidebar-nav { padding: 16px 12px; flex: 1; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 10px; border-radius: 8px; color: var(--sub);
+      text-decoration: none; font-size: .875rem; font-weight: 500;
+      transition: all .15s; cursor: pointer; border: none; background: none; width: 100%;
+    }
+    .nav-item:hover { background: var(--card2); color: var(--text); }
+    .nav-item.active { background: var(--green-bg); color: var(--green); }
+    .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
 
-    /* scanline overlay */
-    body::before {
-      content: '';
-      position: fixed; inset: 0; z-index: 0; pointer-events: none;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0,0,0,.08) 2px,
-        rgba(0,0,0,.08) 4px
-      );
+    /* ── Main ── */
+    .main { flex: 1; overflow-x: hidden; }
+    .topbar {
+      background: var(--card); border-bottom: 1px solid var(--border);
+      padding: 14px 28px; display: flex; align-items: center; justify-content: space-between;
     }
+    .topbar-title { font-size: 1rem; font-weight: 600; }
+    .content { padding: 24px 28px; }
 
-    .wrap { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 20px; }
+    /* ── Period selector ── */
+    .period-bar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 24px; }
+    .period-btn {
+      padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border);
+      background: var(--card); color: var(--sub); font-size: .8rem; font-weight: 500;
+      cursor: pointer; text-decoration: none; transition: all .15s;
+    }
+    .period-btn:hover { border-color: var(--green); color: var(--text); }
+    .period-btn.active { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+    .period-label { color: var(--muted); font-size: .8rem; margin-left: 4px; }
 
-    /* ── Header ── */
-    .g-header {
-      display: flex; align-items: center; justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 14px; margin-bottom: 24px;
+    /* ── KPI cards ── */
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .kpi-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px;
     }
-    .g-logo {
-      font-size: 1.6rem; font-weight: 700; letter-spacing: .1em;
-      color: var(--green);
-      text-shadow: 0 0 18px var(--green-glow), 0 0 40px var(--green-glow);
-    }
-    .g-logo span { color: #fff; }
-    .g-date { font-family: 'Share Tech Mono', monospace; color: var(--muted); font-size: .8rem; }
+    .kpi-label { font-size: .75rem; color: var(--sub); font-weight: 500; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 8px; }
+    .kpi-val { font-size: 1.75rem; font-weight: 700; line-height: 1; margin-bottom: 6px; }
+    .kpi-chg { font-size: .78rem; font-weight: 500; }
+    .up   { color: var(--green); }
+    .down { color: var(--red); }
+    .neutral { color: var(--sub); }
 
-    /* ── Buttons ── */
-    .btn-g {
-      background: transparent; border: 1px solid var(--green-dim);
-      color: var(--green); font-family: 'Rajdhani', sans-serif;
-      font-weight: 700; letter-spacing: .05em; padding: 6px 16px;
-      cursor: pointer; transition: all .2s; font-size: .85rem;
-      text-decoration: none; display: inline-block;
-    }
-    .btn-g:hover { background: var(--green-glow); border-color: var(--green); color: var(--green); box-shadow: 0 0 12px var(--green-glow); }
-    .btn-g-red { border-color: #7a0a0a; color: var(--red); }
-    .btn-g-red:hover { background: #ff174420; border-color: var(--red); color: var(--red); box-shadow: 0 0 12px #ff174440; }
+    /* ── Creatives strip ── */
+    .section-title { font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--sub); margin-bottom: 12px; }
+    .creatives-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+    .creatives-scroll::-webkit-scrollbar { height: 4px; }
+    .creatives-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
-    /* ── Cards ── */
-    .g-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 2px;
-      position: relative;
-      overflow: hidden;
+    .cr-card {
+      flex: 0 0 160px; background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; overflow: hidden; transition: border-color .15s;
     }
-    .g-card::before {
-      content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 2px;
-      background: linear-gradient(90deg, transparent, var(--green-dim), transparent);
-    }
-
-    /* ── Total strip ── */
-    .total-strip {
-      display: grid; grid-template-columns: repeat(4, 1fr);
-      gap: 1px; background: var(--border); margin-bottom: 24px;
-    }
-    .total-cell {
-      background: var(--bg2); padding: 18px 20px;
-    }
-    .total-val {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 2rem; color: var(--green);
-      text-shadow: 0 0 20px var(--green-glow);
-      line-height: 1;
-    }
-    .total-lbl {
-      font-size: .7rem; color: var(--muted); letter-spacing: .1em;
-      text-transform: uppercase; margin-top: 4px;
-    }
+    .cr-card:hover { border-color: var(--green); }
+    .cr-img { width: 100%; height: 100px; object-fit: cover; background: var(--card2); }
+    .cr-placeholder { width: 100%; height: 100px; display: flex; align-items: center; justify-content: center; background: var(--card2); font-size: 2rem; color: var(--muted); }
+    .cr-info { padding: 10px; }
+    .cr-name { font-size: .75rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+    .cr-acc  { font-size: .68rem; color: var(--sub); margin-bottom: 6px; }
+    .cr-nums { font-size: .75rem; color: var(--green); font-weight: 600; }
+    .cr-nums span { color: var(--sub); font-weight: 400; margin: 0 3px; }
+    .cr-empty { padding: 20px; color: var(--muted); font-size: .85rem; }
 
     /* ── Table ── */
     .g-table { width: 100%; border-collapse: collapse; }
     .g-table th {
-      font-size: .7rem; letter-spacing: .12em; text-transform: uppercase;
-      color: var(--muted); padding: 10px 14px; border-bottom: 1px solid var(--border);
-      font-weight: 500; text-align: left;
+      font-size: .72rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .05em; color: var(--sub); padding: 10px 14px;
+      border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap;
     }
-    .g-table td { padding: 12px 14px; border-bottom: 1px solid #0f1a0f; vertical-align: middle; }
+    .g-table td { padding: 13px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
     .g-table tr:last-child td { border-bottom: none; }
-    .g-table tr:hover td { background: var(--bg3); }
+    .g-table tr:hover td { background: var(--card2); }
 
-    .mono { font-family: 'Share Tech Mono', monospace; }
-
-    .val-spend { font-size: 1.1rem; color: var(--green); font-family: 'Share Tech Mono', monospace; }
-    .val-neutral { font-family: 'Share Tech Mono', monospace; color: #8fa; }
-
-    .chg-up   { color: var(--green); font-size: .8rem; }
-    .chg-down { color: var(--red);   font-size: .8rem; }
-    .chg-zero { color: var(--muted); font-size: .8rem; }
-
-    /* ── Status dots ── */
-    .dot {
-      width: 10px; height: 10px; border-radius: 50%;
-      display: inline-block; flex-shrink: 0;
-    }
-    .dot-green  { background: var(--green); box-shadow: 0 0 8px var(--green); }
-    .dot-yellow { background: var(--yellow); box-shadow: 0 0 8px var(--yellow); }
-    .dot-red    { background: var(--red); box-shadow: 0 0 8px var(--red); animation: blink 1s infinite; }
-    .dot-gray   { background: var(--gray); }
-
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .dot-green  { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .dot-yellow { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+    .dot-red    { background: var(--red); box-shadow: 0 0 6px var(--red); animation: blink 1s infinite; }
+    .dot-gray   { background: var(--muted); }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-    /* ── Platform badge ── */
-    .plat-badge {
-      font-size: .68rem; letter-spacing: .08em; text-transform: uppercase;
-      border: 1px solid var(--border); color: var(--muted);
-      padding: 2px 7px; border-radius: 1px;
+    .plat-tag {
+      font-size: .68rem; font-weight: 600; padding: 2px 8px;
+      border-radius: 4px; background: var(--card2); color: var(--sub); border: 1px solid var(--border);
     }
+    .val-main { font-size: .95rem; font-weight: 600; }
+    .val-sub  { font-size: .78rem; color: var(--sub); }
+    .chg-up   { font-size: .75rem; color: var(--green); }
+    .chg-down { font-size: .75rem; color: var(--red); }
 
-    /* ── Chart ── */
-    .chart-wrap { padding: 20px 20px 10px; }
-    .g-section-title {
-      font-size: .7rem; letter-spacing: .15em; text-transform: uppercase;
-      color: var(--muted); padding: 14px 20px 0;
+    /* ── Card ── */
+    .g-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 20px; }
+    .g-card-header { padding: 16px 20px 0; }
+    .g-card-body { padding: 16px 20px 20px; }
+
+    /* ── Buttons ── */
+    .btn-primary-g {
+      background: var(--green); color: #000; border: none; border-radius: 8px;
+      padding: 8px 16px; font-size: .825rem; font-weight: 600; cursor: pointer; transition: opacity .15s;
+      text-decoration: none; display: inline-block;
     }
+    .btn-primary-g:hover { opacity: .85; color: #000; }
+    .btn-outline-g {
+      background: transparent; color: var(--sub); border: 1px solid var(--border);
+      border-radius: 8px; padding: 7px 14px; font-size: .825rem; font-weight: 500;
+      cursor: pointer; transition: all .15s; text-decoration: none; display: inline-block;
+    }
+    .btn-outline-g:hover { border-color: var(--text); color: var(--text); }
 
     /* ── Modal ── */
-    .g-modal .modal-content {
-      background: var(--bg2); color: var(--text);
-      border: 1px solid var(--border); border-radius: 2px;
+    .modal-content { background: var(--card); color: var(--text); border: 1px solid var(--border); border-radius: 12px; }
+    .modal-header { border-bottom: 1px solid var(--border); padding: 16px 20px; }
+    .modal-footer { border-top: 1px solid var(--border); padding: 14px 20px; }
+    .form-control, .form-select {
+      background: var(--card2) !important; color: var(--text) !important;
+      border: 1px solid var(--border) !important; border-radius: 8px !important; font-size: .875rem;
     }
-    .g-modal .modal-header { border-bottom: 1px solid var(--border); padding: 14px 20px; }
-    .g-modal .modal-footer { border-top: 1px solid var(--border); padding: 12px 20px; }
-    .g-modal .form-control, .g-modal .form-select {
-      background: var(--bg) !important; color: var(--text) !important;
-      border: 1px solid var(--border) !important; border-radius: 2px;
-      font-family: 'Rajdhani', sans-serif; font-size: .95rem;
+    .form-control:focus, .form-select:focus {
+      border-color: var(--green) !important; box-shadow: 0 0 0 3px rgba(34,197,94,.15) !important;
     }
-    .g-modal .form-control:focus, .g-modal .form-select:focus {
-      border-color: var(--green-dim) !important;
-      box-shadow: 0 0 0 2px var(--green-glow) !important;
-    }
-    .g-modal label { font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
-    .g-modal .form-select option { background: var(--bg2); }
-
-    /* ── Creatives strip ── */
-    .creatives-wrap {
-      display: flex; gap: 12px; overflow-x: auto;
-      padding: 14px 16px 16px; scrollbar-width: thin;
-      scrollbar-color: var(--border) transparent;
-    }
-    .creatives-wrap::-webkit-scrollbar { height: 4px; }
-    .creatives-wrap::-webkit-scrollbar-track { background: transparent; }
-    .creatives-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-    .cr-card {
-      flex: 0 0 180px; background: var(--bg3);
-      border: 1px solid var(--border); border-radius: 2px;
-      overflow: hidden; transition: border-color .2s;
-    }
-    .cr-card:hover { border-color: var(--green-dim); }
-
-    .cr-img-wrap { width: 100%; height: 120px; overflow: hidden; background: #0a120a; }
-    .cr-img { width: 100%; height: 100%; object-fit: cover; }
-    .cr-img-placeholder {
-      width: 100%; height: 100%; display: flex;
-      align-items: center; justify-content: center;
-      font-size: 2.5rem; color: var(--muted);
-    }
-    .cr-body { padding: 10px 10px 12px; }
-    .cr-name {
-      font-size: .8rem; font-weight: 600; color: var(--text);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      margin-bottom: 2px;
-    }
-    .cr-account { font-size: .68rem; color: var(--muted); margin-bottom: 8px; }
-    .cr-metrics { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
-    .cr-spend { font-family: 'Share Tech Mono', monospace; color: var(--green); font-size: .85rem; }
-    .cr-ctr { font-family: 'Share Tech Mono', monospace; color: #8fa; font-size: .8rem; }
-    .cr-conv { font-family: 'Share Tech Mono', monospace; color: var(--yellow); font-size: .8rem; }
-    .cr-sep { color: var(--border); font-size: .7rem; }
-
-    /* ── No data ── */
-    .no-data { color: var(--muted); font-size: .85rem; font-style: italic; }
+    .form-label { font-size: .75rem; font-weight: 600; color: var(--sub); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 5px; }
+    .form-select option { background: var(--card2); }
   </style>
 </head>
 <body>
-<div class="wrap">
+<div class="layout">
 
-  <!-- Header -->
-  <div class="g-header">
-    <div>
-      <div class="g-logo">🦍 ADS <span>GORILLA</span></div>
-      <div class="g-date">{{ today }} &nbsp;·&nbsp; {{ account_count }} кабинетов &nbsp;·&nbsp; обновление через <span id="timer">5:00</span></div>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">🦍 ADS <span>GORILLA</span></div>
+    <nav class="sidebar-nav">
+      <a href="/" class="nav-item active">
+        <span class="nav-icon">📊</span> Дашборд
+      </a>
+      <a href="/accounts" class="nav-item">
+        <span class="nav-icon">⚙️</span> Кабинеты
+      </a>
+    </nav>
+    <div style="padding:16px 20px; border-top:1px solid var(--border)">
+      <div style="font-size:.72rem;color:var(--muted)">{{ account_count }} кабинетов</div>
+      <div style="font-size:.72rem;color:var(--muted);margin-top:2px" id="timer-wrap">обновление через <span id="timer">5:00</span></div>
     </div>
-    <div class="d-flex gap-2 align-items-center">
-      <a href="/accounts" class="btn-g">⚙ Кабинеты</a>
-      <button class="btn-g" onclick="syncAll(this)">↻ Синхронизировать</button>
-    </div>
-  </div>
+  </aside>
 
-  <!-- Total strip -->
-  <div class="total-strip">
-    <div class="total-cell">
-      <div class="total-val">${{ "%.0f"|format(totals.spend) }}</div>
-      <div class="total-lbl">Расход сегодня</div>
+  <!-- Main -->
+  <div class="main">
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-title">Обзор рекламы</div>
+      <div class="d-flex gap-2">
+        <button class="btn-outline-g" onclick="syncAll(this)">↻ Синхронизировать</button>
+        <button class="btn-outline-g" data-bs-toggle="modal" data-bs-target="#manualModal">+ Ввести вручную</button>
+      </div>
     </div>
-    <div class="total-cell">
-      <div class="total-val">{{ "%.1f"|format(totals.impressions / 1000) }}k</div>
-      <div class="total-lbl">Показы</div>
-    </div>
-    <div class="total-cell">
-      <div class="total-val">{{ "{:,}".format(totals.clicks) }}</div>
-      <div class="total-lbl">Клики</div>
-    </div>
-    <div class="total-cell">
-      <div class="total-val">{{ "%.2f"|format(total_ctr) }}%</div>
-      <div class="total-lbl">CTR средний</div>
-    </div>
-  </div>
 
-  <!-- Top Creatives -->
-  {% if top_creatives %}
-  <div class="g-card mb-4">
-    <div class="g-section-title">ТОП КРЕАТИВЫ — ПО РАСХОДУ СЕГОДНЯ</div>
-    <div class="creatives-wrap">
-      {% for creative, account in top_creatives %}
-      <div class="cr-card">
-        <div class="cr-img-wrap">
-          {% if creative.image_url %}
-          <img src="{{ creative.image_url }}" alt="{{ creative.ad_name }}" class="cr-img" loading="lazy">
+    <div class="content">
+
+      <!-- Period selector -->
+      <div class="period-bar">
+        {% set periods = [("today","Сегодня"),("yesterday","Вчера"),("7d","7 дней"),("30d","30 дней"),("month","Этот месяц")] %}
+        {% for val, label in periods %}
+        <a href="/?period={{ val }}" class="period-btn {{ 'active' if period == val else '' }}">{{ label }}</a>
+        {% endfor %}
+        <span class="period-label">{{ date_from.strftime('%d.%m') }}{% if date_from != date_to %} — {{ date_to.strftime('%d.%m.%Y') }}{% else %}, {{ date_to.strftime('%Y') }}{% endif %}</span>
+      </div>
+
+      <!-- KPI -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Расход</div>
+          <div class="kpi-val">${{ "%.0f"|format(totals.spend) }}</div>
+          {% if total_pct is not none %}
+          <div class="kpi-chg {{ 'up' if total_pct >= 0 else 'down' }}">
+            {{ "▲" if total_pct >= 0 else "▼" }} {{ "%.1f"|format(total_pct|abs) }}% vs пред. период
+          </div>
           {% else %}
-          <div class="cr-img-placeholder">{{ PLATFORM_ICONS.get(account.platform, '📊') }}</div>
+          <div class="kpi-chg neutral">— нет данных для сравнения</div>
           {% endif %}
         </div>
-        <div class="cr-body">
-          <div class="cr-name" title="{{ creative.ad_name }}">{{ creative.ad_name[:40] }}{% if creative.ad_name|length > 40 %}…{% endif %}</div>
-          <div class="cr-account">{{ account.name }}</div>
-          <div class="cr-metrics">
-            <span class="cr-spend">${{ "%.0f"|format(creative.spend) }}</span>
-            <span class="cr-sep">·</span>
-            <span class="cr-ctr">{{ "%.2f"|format(creative.ctr) }}%</span>
-            {% if creative.conversions > 0 %}
-            <span class="cr-sep">·</span>
-            <span class="cr-conv">{{ creative.conversions }} conv</span>
-            {% endif %}
-          </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Показы</div>
+          <div class="kpi-val">{{ "%.1f"|format(totals.impressions / 1000) }}k</div>
+          <div class="kpi-chg neutral">за период</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Клики</div>
+          <div class="kpi-val">{{ "{:,}".format(totals.clicks) }}</div>
+          <div class="kpi-chg neutral">за период</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">CTR</div>
+          <div class="kpi-val">{{ "%.2f"|format(total_ctr) }}%</div>
+          <div class="kpi-chg neutral">средний</div>
         </div>
       </div>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
 
-  <!-- Accounts table -->
-  <div class="g-card mb-4">
-    <div class="g-section-title">Все кабинеты — статистика сегодня</div>
-    <div style="overflow-x:auto">
-      <table class="g-table">
-        <thead>
-          <tr>
-            <th></th>
-            <th>Кабинет</th>
-            <th>Платформа</th>
-            <th>Расход</th>
-            <th>vs вчера</th>
-            <th>CTR</th>
-            <th>Клики</th>
-            <th>Показы</th>
-            <th>Конверсии</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for r in rows %}
-          <tr>
-            <td><span class="dot dot-{{ r.status }}"></span></td>
-            <td class="fw-bold">{{ r.account.name }}</td>
-            <td><span class="plat-badge">{{ r.icon }} {{ r.account.platform }}</span></td>
-
-            {% if r.today %}
-              <td class="val-spend">${{ "%.2f"|format(r.today.spend) }}</td>
-              <td>
-                {% if r.yesterday and r.yesterday.spend > 0 %}
-                  {% set pct = ((r.today.spend - r.yesterday.spend) / r.yesterday.spend * 100)|round(1) %}
-                  <span class="{{ 'chg-up' if pct >= 0 else 'chg-down' }}">
-                    {{ "+" if pct >= 0 else "" }}{{ pct }}%
-                  </span>
-                {% else %}
-                  <span class="chg-zero">—</span>
-                {% endif %}
-              </td>
-              <td class="val-neutral">{{ "%.2f"|format(r.today.ctr) }}%</td>
-              <td class="val-neutral">{{ "{:,}".format(r.today.clicks) }}</td>
-              <td class="val-neutral">{{ "%.1f"|format(r.today.impressions / 1000) }}k</td>
-              <td class="val-neutral">{{ r.today.conversions }}</td>
-            {% else %}
-              <td colspan="6" class="no-data">нет данных</td>
-            {% endif %}
-
-            <td>
-              {% if r.account.platform in ['telegram','trafficjunky','manual'] %}
-              <button class="btn-g" style="font-size:.75rem;padding:3px 10px"
-                onclick="openManual({{ r.account.id }}, '{{ r.account.name }}')">+ ввести</button>
-              {% else %}
-              <button class="btn-g" style="font-size:.75rem;padding:3px 10px"
-                onclick="syncOne({{ r.account.id }}, this)">↻</button>
-              {% endif %}
-            </td>
-          </tr>
+      <!-- Creatives -->
+      <div class="mb-1"><span class="section-title">Топ креативы по расходу</span></div>
+      {% if top_creatives %}
+      <div class="creatives-scroll mb-4">
+        {% for cr, acc in top_creatives %}
+        <div class="cr-card">
+          {% if cr.image_url %}
+          <img src="{{ cr.image_url }}" class="cr-img" loading="lazy">
           {% else %}
-          <tr>
-            <td colspan="10" class="text-center py-4 no-data">
-              Нет кабинетов. <a href="/accounts" style="color:var(--green)">Добавить</a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+          <div class="cr-placeholder">{{ icons.get(acc.platform, '📊') }}</div>
+          {% endif %}
+          <div class="cr-info">
+            <div class="cr-name" title="{{ cr.ad_name }}">{{ cr.ad_name[:35] }}{% if cr.ad_name|length > 35 %}…{% endif %}</div>
+            <div class="cr-acc">{{ acc.name }}</div>
+            <div class="cr-nums">${{ "%.0f"|format(cr.spend) }}<span>·</span>{{ "%.1f"|format(cr.ctr) }}%</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="cr-empty mb-4">Данные появятся после синхронизации с активными объявлениями</div>
+      {% endif %}
+
+      <!-- Accounts table -->
+      <div class="g-card">
+        <div class="g-card-header" style="display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid var(--border)">
+          <span class="section-title" style="margin:0">Все кабинеты</span>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="g-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Кабинет</th>
+                <th>Платформа</th>
+                <th>Расход</th>
+                <th>Изм.</th>
+                <th>CTR</th>
+                <th>Клики</th>
+                <th>Показы</th>
+                <th>Конв.</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for r in rows %}
+              <tr>
+                <td><span class="status-dot dot-{{ r.status }}"></span></td>
+                <td class="val-main">{{ r.account.name }}</td>
+                <td><span class="plat-tag">{{ r.icon }} {{ r.account.platform }}</span></td>
+                <td class="val-main">${{ "%.2f"|format(r.spend) }}</td>
+                <td>
+                  {% if r.pct_chg is not none %}
+                  <span class="{{ 'chg-up' if r.pct_chg >= 0 else 'chg-down' }}">
+                    {{ "+" if r.pct_chg >= 0 else "" }}{{ "%.1f"|format(r.pct_chg) }}%
+                  </span>
+                  {% else %}<span class="val-sub">—</span>{% endif %}
+                </td>
+                <td class="val-sub">{{ "%.2f"|format(r.ctr) }}%</td>
+                <td class="val-sub">{{ "{:,}".format(r.clicks) }}</td>
+                <td class="val-sub">{{ "%.1f"|format(r.impr / 1000) }}k</td>
+                <td class="val-sub">{{ r.convs }}</td>
+                <td>
+                  {% if r.account.platform in ['telegram','trafficjunky','manual'] %}
+                  <button class="btn-outline-g" style="padding:4px 10px;font-size:.72rem" onclick="openManual({{ r.account.id }}, '{{ r.account.name }}')">+ ввести</button>
+                  {% else %}
+                  <button class="btn-outline-g" style="padding:4px 10px;font-size:.72rem" onclick="syncOne({{ r.account.id }}, this)">↻</button>
+                  {% endif %}
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="10" style="text-align:center;padding:32px;color:var(--muted)">
+                  Нет кабинетов. <a href="/accounts" style="color:var(--green)">Добавить</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Chart -->
+      <div class="g-card">
+        <div class="g-card-header" style="padding-bottom:14px;border-bottom:1px solid var(--border)">
+          <span class="section-title" style="margin:0">Расход по дням — 7 дней</span>
+        </div>
+        <div class="g-card-body">
+          <canvas id="chart" height="65"></canvas>
+        </div>
+      </div>
+
     </div>
   </div>
-
-  <!-- Chart -->
-  <div class="g-card">
-    <div class="g-section-title">Расход по дням — 7 дней</div>
-    <div class="chart-wrap">
-      <canvas id="chart" height="70"></canvas>
-    </div>
-  </div>
-
 </div>
 
 <!-- Manual stats modal -->
-<div class="modal fade g-modal" id="manualModal" tabindex="-1">
+<div class="modal fade" id="manualModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h6 class="mb-0" id="manualTitle">Ввести статистику</h6>
+        <h6 class="mb-0" id="manualTitle">Ввести статистику вручную</h6>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form action="/manual-stats" method="post">
         <input type="hidden" name="account_id" id="manualAccountId">
-        <div class="modal-body">
-          <div class="mb-3">
-            <label>Дата</label>
+        <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
+          <div>
+            <label class="form-label">Кабинет</label>
+            <select name="account_id" id="manualSelect" class="form-select">
+              {% for r in rows %}
+              {% if r.account.platform in ['telegram','trafficjunky','manual'] %}
+              <option value="{{ r.account.id }}">{{ r.account.name }}</option>
+              {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Дата</label>
             <input type="date" name="date_str" class="form-control" value="{{ today }}">
           </div>
           <div class="row g-2">
-            <div class="col-6">
-              <label>Показы</label>
+            <div class="col-4">
+              <label class="form-label">Показы</label>
               <input type="number" name="impressions" class="form-control" value="0" min="0">
             </div>
-            <div class="col-6">
-              <label>Клики</label>
+            <div class="col-4">
+              <label class="form-label">Клики</label>
               <input type="number" name="clicks" class="form-control" value="0" min="0">
             </div>
-            <div class="col-12">
-              <label>Расход ($)</label>
+            <div class="col-4">
+              <label class="form-label">Расход $</label>
               <input type="number" name="spend" step="0.01" class="form-control" value="0" min="0">
             </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn-g btn-g-red" data-bs-dismiss="modal">Отмена</button>
-          <button type="submit" class="btn-g">Сохранить</button>
+          <button type="button" class="btn-outline-g" data-bs-dismiss="modal">Отмена</button>
+          <button type="submit" class="btn-primary-g">Сохранить</button>
         </div>
       </form>
     </div>
@@ -403,9 +382,8 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
   const cd = {{ chart_data | tojson }};
-
-  Chart.defaults.color = '#3a6a3a';
-  Chart.defaults.font.family = "'Share Tech Mono', monospace";
+  Chart.defaults.color = '#666';
+  Chart.defaults.font.family = 'Inter, sans-serif';
 
   new Chart(document.getElementById('chart'), {
     type: 'line',
@@ -413,26 +391,22 @@
     options: {
       interaction: { mode: 'index', intersect: false },
       plugins: {
-        legend: { labels: { color: '#3a7a3a', boxWidth: 10, font: { size: 11 } } },
-        tooltip: {
-          backgroundColor: '#0b120b',
-          borderColor: '#1a3a1a', borderWidth: 1,
-          callbacks: { label: ctx => ' ' + ctx.dataset.label + ': $' + ctx.parsed.y }
-        }
+        legend: { labels: { color: '#888', boxWidth: 10, font: { size: 11 } } },
+        tooltip: { backgroundColor: '#1f1f1f', borderColor: '#2a2a2a', borderWidth: 1,
+          callbacks: { label: c => ' ' + c.dataset.label + ': $' + c.parsed.y } }
       },
       scales: {
-        x: { ticks: { color: '#2a5a2a' }, grid: { color: '#0f1a0f' } },
-        y: { ticks: { color: '#2a5a2a', callback: v => '$' + v }, grid: { color: '#0f1a0f' } },
+        x: { ticks: { color: '#555' }, grid: { color: '#1f1f1f' } },
+        y: { ticks: { color: '#555', callback: v => '$' + v }, grid: { color: '#1f1f1f' } },
       }
     }
   });
 
   let secs = 300;
+  const t = document.getElementById('timer');
   setInterval(() => {
-    secs--;
-    const m = String(Math.floor(secs/60)).padStart(1,'0');
-    const s = String(secs%60).padStart(2,'0');
-    document.getElementById('timer').textContent = m+':'+s;
+    if (--secs <= 0) location.reload();
+    t.textContent = Math.floor(secs/60) + ':' + String(secs%60).padStart(2,'0');
   }, 1000);
 
   async function syncAll(btn) {
@@ -440,15 +414,13 @@
     await fetch('/sync', { method: 'POST' });
     location.reload();
   }
-
   async function syncOne(id, btn) {
     btn.disabled = true; btn.textContent = '⏳';
-    await fetch(`/accounts/${id}/sync`, { method: 'POST' });
+    await fetch('/accounts/' + id + '/sync', { method: 'POST' });
     location.reload();
   }
-
   function openManual(id, name) {
-    document.getElementById('manualAccountId').value = id;
+    document.getElementById('manualSelect').value = id;
     document.getElementById('manualTitle').textContent = '+ ' + name;
     new bootstrap.Modal(document.getElementById('manualModal')).show();
   }
