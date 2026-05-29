@@ -270,11 +270,36 @@
 
       <!-- Period selector -->
       <div class="period-bar">
-        {% set periods = [("today","Сегодня"),("yesterday","Вчера"),("7d","7 дней"),("30d","30 дней"),("month","Этот месяц")] %}
+        {% set periods = [("today","Сегодня"),("yesterday","Вчера"),("7d","7 дней"),("30d","30 дней"),("month","Месяц"),("year","Этот год")] %}
         {% for val, label in periods %}
         <a href="/?period={{ val }}" class="period-btn {{ 'active' if period == val else '' }}">{{ label }}</a>
         {% endfor %}
-        <span class="period-label">{{ date_from.strftime('%d.%m') }}{% if date_from != date_to %} — {{ date_to.strftime('%d.%m.%Y') }}{% else %}, {{ date_to.strftime('%Y') }}{% endif %}</span>
+        <button class="period-btn {{ 'active' if period == 'custom' else '' }}" onclick="togglePicker()" id="customBtn">
+          📅 Свой период
+        </button>
+        <span class="period-label">
+          {{ date_from.strftime('%d.%m.%Y') }}{% if date_from != date_to %} — {{ date_to.strftime('%d.%m.%Y') }}{% endif %}
+        </span>
+      </div>
+
+      <!-- Custom date picker -->
+      <div id="datePicker" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:20px;display:none">
+        <form method="get" action="/" style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap">
+          <input type="hidden" name="period" value="custom">
+          <div>
+            <div class="form-label" style="margin-bottom:5px">От</div>
+            <input type="date" name="date_from_str" class="form-control" style="width:160px"
+              value="{{ date_from.isoformat() if period == 'custom' else '' }}"
+              max="{{ today }}">
+          </div>
+          <div>
+            <div class="form-label" style="margin-bottom:5px">До</div>
+            <input type="date" name="date_to_str" class="form-control" style="width:160px"
+              value="{{ date_to.isoformat() if period == 'custom' else '' }}"
+              max="{{ today }}">
+          </div>
+          <button type="submit" class="btn-primary-g" style="height:38px">Применить</button>
+        </form>
       </div>
 
       <!-- KPI row 1 -->
@@ -511,6 +536,16 @@
       }
     }
   });
+
+  // date picker toggle
+  function togglePicker() {
+    const p = document.getElementById('datePicker');
+    p.style.display = p.style.display === 'none' ? 'block' : 'none';
+  }
+  // auto-open if custom period active
+  if ('{{ period }}' === 'custom') {
+    document.getElementById('datePicker').style.display = 'block';
+  }
 
   let secs = 300;
   const t = document.getElementById('timer');

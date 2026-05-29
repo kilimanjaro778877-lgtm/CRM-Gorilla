@@ -30,7 +30,13 @@ def on_startup():
 # ── Dashboard ──────────────────────────────────────────────────────────────
 
 @app.get("/", response_class=HTMLResponse)
-def dashboard(request: Request, period: str = "today", db: Session = Depends(get_db)):
+def dashboard(
+    request: Request,
+    period: str = "today",
+    date_from_str: str = None,
+    date_to_str: str = None,
+    db: Session = Depends(get_db),
+):
     today = date.today()
 
     periods = {
@@ -39,8 +45,18 @@ def dashboard(request: Request, period: str = "today", db: Session = Depends(get
         "7d":        (today - timedelta(days=6), today),
         "30d":       (today - timedelta(days=29), today),
         "month":     (today.replace(day=1), today),
+        "year":      (today.replace(month=1, day=1), today),
     }
-    date_from, date_to = periods.get(period, periods["today"])
+
+    if date_from_str and date_to_str:
+        try:
+            date_from = date.fromisoformat(date_from_str)
+            date_to   = date.fromisoformat(date_to_str)
+            period    = "custom"
+        except ValueError:
+            date_from, date_to = periods["today"]
+    else:
+        date_from, date_to = periods.get(period, periods["today"])
     prev_from = date_from - (date_to - date_from + timedelta(days=1))
     prev_to   = date_from - timedelta(days=1)
 
