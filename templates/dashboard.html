@@ -9,22 +9,22 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
-      --bg:       #0e0e0e;
-      --card:     #181818;
-      --card2:    #1f1f1f;
-      --border:   #2a2a2a;
-      --green:    #22c55e;
-      --green-bg: rgba(34,197,94,.1);
-      --red:      #ef4444;
-      --yellow:   #f59e0b;
-      --blue:     #3b82f6;
-      --text:     #f0f0f0;
-      --sub:      #888;
-      --muted:    #555;
+      --bg:        #0a0a0a;
+      --card:      #141414;
+      --card2:     #1c1c1c;
+      --border:    #242424;
+      --green:     #22c55e;
+      --green-dim: rgba(34,197,94,.12);
+      --green-glow:rgba(34,197,94,.06);
+      --red:       #ef4444;
+      --red-dim:   rgba(239,68,68,.1);
+      --yellow:    #f59e0b;
+      --text:      #f2f2f2;
+      --sub:       #6b6b6b;
+      --muted:     #3a3a3a;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; }
-
     .layout { display: flex; min-height: 100vh; }
 
     /* ── Sidebar ── */
@@ -34,90 +34,162 @@
     }
     .sidebar-logo {
       padding: 0 20px 24px; border-bottom: 1px solid var(--border);
-      font-size: 1.1rem; font-weight: 700; color: var(--text);
+      font-size: 1.05rem; font-weight: 700; color: var(--text); letter-spacing: -.01em;
     }
     .sidebar-logo span { color: var(--green); }
-    .sidebar-nav { padding: 16px 12px; flex: 1; }
+    .sidebar-nav { padding: 14px 10px; flex: 1; }
     .nav-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 9px 10px; border-radius: 8px; color: var(--sub);
-      text-decoration: none; font-size: .875rem; font-weight: 500;
-      transition: all .15s; cursor: pointer; border: none; background: none; width: 100%;
+      display: flex; align-items: center; gap: 10px; padding: 9px 10px;
+      border-radius: 8px; color: var(--sub); text-decoration: none;
+      font-size: .85rem; font-weight: 500; transition: all .15s;
+      cursor: pointer; border: none; background: none; width: 100%;
     }
     .nav-item:hover { background: var(--card2); color: var(--text); }
-    .nav-item.active { background: var(--green-bg); color: var(--green); }
+    .nav-item.active { background: var(--green-dim); color: var(--green); }
     .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
 
     /* ── Main ── */
-    .main { flex: 1; overflow-x: hidden; }
+    .main { flex: 1; overflow-x: hidden; min-width: 0; }
     .topbar {
       background: var(--card); border-bottom: 1px solid var(--border);
-      padding: 14px 28px; display: flex; align-items: center; justify-content: space-between;
+      padding: 13px 28px; display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 10;
     }
-    .topbar-title { font-size: 1rem; font-weight: 600; }
+    .topbar-title { font-size: .95rem; font-weight: 600; }
     .content { padding: 24px 28px; }
 
     /* ── Period selector ── */
-    .period-bar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 24px; }
+    .period-bar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 28px; }
     .period-btn {
-      padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border);
-      background: var(--card); color: var(--sub); font-size: .8rem; font-weight: 500;
-      cursor: pointer; text-decoration: none; transition: all .15s;
+      padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border);
+      background: transparent; color: var(--sub); font-size: .8rem; font-weight: 500;
+      cursor: pointer; text-decoration: none; transition: all .2s;
     }
     .period-btn:hover { border-color: var(--green); color: var(--text); }
-    .period-btn.active { background: var(--green-bg); border-color: var(--green); color: var(--green); }
-    .period-label { color: var(--muted); font-size: .8rem; margin-left: 4px; }
+    .period-btn.active { background: var(--green-dim); border-color: var(--green); color: var(--green); font-weight: 600; }
+    .period-label { color: var(--muted); font-size: .78rem; margin-left: 6px; }
 
     /* ── KPI cards ── */
-    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
-    @media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
-    .kpi-card {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 12px; padding: 20px;
-    }
-    .kpi-label { font-size: .75rem; color: var(--sub); font-weight: 500; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 8px; }
-    .kpi-val { font-size: 1.75rem; font-weight: 700; line-height: 1; margin-bottom: 6px; }
-    .kpi-chg { font-size: .78rem; font-weight: 500; }
-    .up   { color: var(--green); }
-    .down { color: var(--red); }
-    .neutral { color: var(--sub); }
+    .kpi-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 14px; }
+    @media (max-width:1100px) { .kpi-grid { grid-template-columns: repeat(2,1fr); } }
 
-    /* ── Creatives strip ── */
-    .section-title { font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--sub); margin-bottom: 12px; }
-    .creatives-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
-    .creatives-scroll::-webkit-scrollbar { height: 4px; }
-    .creatives-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    .kpi-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 20px 22px; position: relative; overflow: hidden;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .kpi-card:hover {
+      border-color: rgba(34,197,94,.25);
+      box-shadow: 0 0 24px var(--green-glow);
+    }
+    .kpi-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(34,197,94,.4), transparent);
+      opacity: 0; transition: opacity .2s;
+    }
+    .kpi-card:hover::before { opacity: 1; }
+
+    .kpi-card-main { border-color: rgba(34,197,94,.2); box-shadow: 0 0 30px var(--green-glow); }
+    .kpi-card-main::before { opacity: 1; background: linear-gradient(90deg, transparent, rgba(34,197,94,.6), transparent); }
+
+    .kpi-icon { font-size: 1.1rem; margin-bottom: 12px; opacity: .7; }
+    .kpi-label { font-size: .7rem; color: var(--sub); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+    .kpi-val { font-size: 2rem; font-weight: 700; line-height: 1; letter-spacing: -.03em; margin-bottom: 8px; }
+    .kpi-card-main .kpi-val { color: var(--green); }
+    .kpi-chg { font-size: .75rem; font-weight: 500; display: flex; align-items: center; gap: 4px; }
+    .up     { color: var(--green); }
+    .down   { color: var(--red); }
+    .neutral{ color: var(--sub); }
+
+    /* ── Section title ── */
+    .section-title {
+      font-size: .7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--sub); margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-title::after { content:''; flex:1; height:1px; background:var(--border); }
+
+    /* ── Creatives ── */
+    .creatives-scroll { display:flex; gap:12px; overflow-x:auto; padding-bottom:6px; scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
+    .creatives-scroll::-webkit-scrollbar { height:3px; }
+    .creatives-scroll::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
 
     .cr-card {
-      flex: 0 0 160px; background: var(--card); border: 1px solid var(--border);
-      border-radius: 10px; overflow: hidden; transition: border-color .15s;
+      flex:0 0 155px; background:var(--card); border:1px solid var(--border);
+      border-radius:12px; overflow:hidden; transition:all .2s; cursor:pointer;
     }
-    .cr-card:hover { border-color: var(--green); }
-    .cr-img { width: 100%; height: 100px; object-fit: cover; background: var(--card2); }
-    .cr-placeholder { width: 100%; height: 100px; display: flex; align-items: center; justify-content: center; background: var(--card2); font-size: 2rem; color: var(--muted); }
-    .cr-info { padding: 10px; }
-    .cr-name { font-size: .75rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
-    .cr-acc  { font-size: .68rem; color: var(--sub); margin-bottom: 6px; }
-    .cr-nums { font-size: .75rem; color: var(--green); font-weight: 600; }
-    .cr-nums span { color: var(--sub); font-weight: 400; margin: 0 3px; }
-    .cr-empty { padding: 20px; color: var(--muted); font-size: .85rem; }
+    .cr-card:hover { border-color:rgba(34,197,94,.3); box-shadow:0 4px 20px rgba(0,0,0,.4); transform:translateY(-2px); }
+    .cr-img { width:100%; height:95px; object-fit:cover; }
+    .cr-placeholder { width:100%; height:95px; display:flex; align-items:center; justify-content:center; background:var(--card2); font-size:2rem; color:var(--muted); }
+    .cr-info { padding:10px 11px 12px; }
+    .cr-name { font-size:.73rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:2px; }
+    .cr-acc  { font-size:.65rem; color:var(--sub); margin-bottom:7px; }
+    .cr-spend{ font-size:.85rem; font-weight:700; color:var(--green); }
+    .cr-ctr  { font-size:.72rem; color:var(--sub); margin-top:1px; }
+    .cr-empty{ padding:20px 0; color:var(--muted); font-size:.82rem; }
 
-    /* ── Table ── */
-    .g-table { width: 100%; border-collapse: collapse; }
+    /* ── Table card ── */
+    .g-card { background:var(--card); border:1px solid var(--border); border-radius:14px; margin-bottom:20px; overflow:hidden; }
+    .g-card-head { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+
+    .g-table { width:100%; border-collapse:collapse; }
     .g-table th {
-      font-size: .72rem; font-weight: 600; text-transform: uppercase;
-      letter-spacing: .05em; color: var(--sub); padding: 10px 14px;
-      border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap;
+      font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+      color:var(--sub); padding:11px 16px; border-bottom:1px solid var(--border);
+      text-align:left; white-space:nowrap; background:rgba(255,255,255,.015);
     }
-    .g-table td { padding: 13px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-    .g-table tr:last-child td { border-bottom: none; }
-    .g-table tr:hover td { background: var(--card2); }
+    .g-table td { padding:14px 16px; border-bottom:1px solid rgba(255,255,255,.04); vertical-align:middle; }
+    .g-table tr:last-child td { border-bottom:none; }
+    .g-table tbody tr:hover td { background:rgba(255,255,255,.025); }
 
-    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-    .dot-green  { background: var(--green); box-shadow: 0 0 6px var(--green); }
-    .dot-yellow { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
-    .dot-red    { background: var(--red); box-shadow: 0 0 6px var(--red); animation: blink 1s infinite; }
-    .dot-gray   { background: var(--muted); }
+    /* status dot */
+    .status-dot { width:8px; height:8px; border-radius:50%; display:inline-block; flex-shrink:0; }
+    .dot-green  { background:var(--green); box-shadow:0 0 8px rgba(34,197,94,.8); }
+    .dot-yellow { background:var(--yellow); box-shadow:0 0 8px rgba(245,158,11,.8); }
+    .dot-red    { background:var(--red); box-shadow:0 0 8px rgba(239,68,68,.8); animation:blink 1.2s infinite; }
+    .dot-gray   { background:var(--muted); }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+    /* platform tag */
+    .plat-tag {
+      font-size:.65rem; font-weight:700; padding:3px 8px; border-radius:5px;
+      background:var(--card2); color:var(--sub); border:1px solid var(--border);
+      letter-spacing:.03em; text-transform:uppercase;
+    }
+
+    /* values */
+    .val-spend { font-size:.95rem; font-weight:700; color:var(--text); }
+    .val-sub   { font-size:.82rem; color:var(--sub); }
+    .chg-up    { font-size:.75rem; color:var(--green); font-weight:600; }
+    .chg-down  { font-size:.75rem; color:var(--red); font-weight:600; }
+
+    /* ── Buttons ── */
+    .btn-primary-g {
+      background:var(--green); color:#000; border:none; border-radius:8px;
+      padding:8px 18px; font-size:.825rem; font-weight:700; cursor:pointer;
+      transition:opacity .15s; text-decoration:none; display:inline-block; letter-spacing:-.01em;
+    }
+    .btn-primary-g:hover { opacity:.85; color:#000; }
+    .btn-outline-g {
+      background:transparent; color:var(--sub); border:1px solid var(--border); border-radius:8px;
+      padding:7px 14px; font-size:.825rem; font-weight:500; cursor:pointer;
+      transition:all .15s; text-decoration:none; display:inline-block;
+    }
+    .btn-outline-g:hover { border-color:rgba(255,255,255,.2); color:var(--text); }
+
+    /* ── Modal ── */
+    .modal-content { background:var(--card); color:var(--text); border:1px solid var(--border); border-radius:16px; }
+    .modal-header { border-bottom:1px solid var(--border); padding:18px 22px; }
+    .modal-footer { border-top:1px solid var(--border); padding:14px 22px; }
+    .form-control,.form-select {
+      background:var(--card2)!important; color:var(--text)!important;
+      border:1px solid var(--border)!important; border-radius:9px!important; font-size:.875rem;
+    }
+    .form-control:focus,.form-select:focus {
+      border-color:var(--green)!important; box-shadow:0 0 0 3px rgba(34,197,94,.12)!important;
+    }
+    .form-label { font-size:.7rem; font-weight:700; color:var(--sub); text-transform:uppercase; letter-spacing:.05em; margin-bottom:5px; }
+    .form-select option { background:var(--card2); }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
 
     .plat-tag {
@@ -206,61 +278,69 @@
       </div>
 
       <!-- KPI row 1 -->
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <div class="kpi-label">Расход</div>
+      <div class="kpi-grid" style="margin-bottom:14px">
+        <div class="kpi-card kpi-card-main">
+          <div class="kpi-icon">💰</div>
+          <div class="kpi-label">Общий расход</div>
           <div class="kpi-val">${{ "%.0f"|format(totals.spend) }}</div>
           {% if total_pct is not none %}
           <div class="kpi-chg {{ 'up' if total_pct >= 0 else 'down' }}">
-            {{ "▲" if total_pct >= 0 else "▼" }} {{ "%.1f"|format(total_pct|abs) }}% vs пред. период
+            {{ "▲" if total_pct >= 0 else "▼" }} {{ "%.1f"|format(total_pct|abs) }}% vs прошлый период
           </div>
           {% else %}
           <div class="kpi-chg neutral">нет данных для сравнения</div>
           {% endif %}
         </div>
         <div class="kpi-card">
+          <div class="kpi-icon">👁</div>
           <div class="kpi-label">Показы</div>
           <div class="kpi-val">{{ "%.1f"|format(totals.impressions / 1000) }}k</div>
-          <div class="kpi-chg neutral">суммарно за период</div>
+          <div class="kpi-chg neutral">суммарно все платформы</div>
         </div>
         <div class="kpi-card">
+          <div class="kpi-icon">🖱</div>
           <div class="kpi-label">Клики</div>
           <div class="kpi-val">{{ "{:,}".format(totals.clicks) }}</div>
-          <div class="kpi-chg neutral">суммарно за период</div>
+          <div class="kpi-chg neutral">суммарно все платформы</div>
         </div>
         <div class="kpi-card">
+          <div class="kpi-icon">🎯</div>
           <div class="kpi-label">Конверсии</div>
           <div class="kpi-val">{{ "{:,}".format(totals.conversions) }}</div>
-          <div class="kpi-chg neutral">суммарно за период</div>
+          <div class="kpi-chg neutral">суммарно все платформы</div>
         </div>
       </div>
 
       <!-- KPI row 2 -->
       <div class="kpi-grid">
         <div class="kpi-card">
+          <div class="kpi-icon">📈</div>
           <div class="kpi-label">CTR средний</div>
           <div class="kpi-val">{{ "%.2f"|format(total_ctr) }}%</div>
-          <div class="kpi-chg neutral">клики / показы × 100</div>
+          <div class="kpi-chg neutral">клики ÷ показы × 100</div>
         </div>
         <div class="kpi-card">
+          <div class="kpi-icon">💸</div>
           <div class="kpi-label">CPC средний</div>
-          <div class="kpi-val">{% if total_cpc > 0 %}${{ "%.2f"|format(total_cpc) }}{% else %}—{% endif %}</div>
-          <div class="kpi-chg neutral">расход / клики</div>
+          <div class="kpi-val">{% if total_cpc > 0 %}${{ "%.2f"|format(total_cpc) }}{% else %}<span style="color:var(--muted)">—</span>{% endif %}</div>
+          <div class="kpi-chg neutral">расход ÷ клики</div>
         </div>
         <div class="kpi-card">
+          <div class="kpi-icon">📊</div>
           <div class="kpi-label">CPM средний</div>
-          <div class="kpi-val">{% if total_cpm > 0 %}${{ "%.2f"|format(total_cpm) }}{% else %}—{% endif %}</div>
-          <div class="kpi-chg neutral">расход / 1000 показов</div>
+          <div class="kpi-val">{% if total_cpm > 0 %}${{ "%.2f"|format(total_cpm) }}{% else %}<span style="color:var(--muted)">—</span>{% endif %}</div>
+          <div class="kpi-chg neutral">расход ÷ 1000 показов</div>
         </div>
         <div class="kpi-card">
+          <div class="kpi-icon">🏆</div>
           <div class="kpi-label">CPA средний</div>
-          <div class="kpi-val">{% if total_cpa > 0 %}${{ "%.2f"|format(total_cpa) }}{% else %}—{% endif %}</div>
-          <div class="kpi-chg neutral">расход / конверсии</div>
+          <div class="kpi-val">{% if total_cpa > 0 %}${{ "%.2f"|format(total_cpa) }}{% else %}<span style="color:var(--muted)">—</span>{% endif %}</div>
+          <div class="kpi-chg neutral">расход ÷ конверсии</div>
         </div>
       </div>
 
       <!-- Creatives -->
-      <div class="mb-1"><span class="section-title">Топ креативы по расходу</span></div>
+      <div class="section-title" style="margin-bottom:14px">Топ креативы по расходу</div>
       {% if top_creatives %}
       <div class="creatives-scroll mb-4">
         {% for cr, acc in top_creatives %}
@@ -284,8 +364,9 @@
 
       <!-- Accounts table -->
       <div class="g-card">
-        <div class="g-card-header" style="display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid var(--border)">
+        <div class="g-card-head">
           <span class="section-title" style="margin:0">Все кабинеты</span>
+          <span style="font-size:.75rem;color:var(--sub)">{{ rows|length }} подключено</span>
         </div>
         <div style="overflow-x:auto">
           <table class="g-table">
@@ -311,7 +392,7 @@
                 <td><span class="status-dot dot-{{ r.status }}"></span></td>
                 <td class="val-main">{{ r.account.name }}</td>
                 <td><span class="plat-tag">{{ r.icon }} {{ r.account.platform }}</span></td>
-                <td class="val-main">${{ "%.2f"|format(r.spend) }}</td>
+                <td><span class="val-spend">${{ "%.2f"|format(r.spend) }}</span></td>
                 <td>
                   {% if r.pct_chg is not none %}
                   <span class="{{ 'chg-up' if r.pct_chg >= 0 else 'chg-down' }}">
@@ -347,11 +428,11 @@
 
       <!-- Chart -->
       <div class="g-card">
-        <div class="g-card-header" style="padding-bottom:14px;border-bottom:1px solid var(--border)">
+        <div class="g-card-head">
           <span class="section-title" style="margin:0">Расход по дням — 7 дней</span>
         </div>
-        <div class="g-card-body">
-          <canvas id="chart" height="65"></canvas>
+        <div style="padding:16px 20px 20px">
+          <canvas id="chart" height="60"></canvas>
         </div>
       </div>
 
