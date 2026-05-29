@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>🦍 Кабинеты — ADS GORILLA</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@500;700&display=swap');
+
+    :root {
+      --bg:#060a06; --bg2:#0b120b; --bg3:#0f1a0f;
+      --green:#00e676; --green-dim:#00994d; --green-glow:#00e67640;
+      --red:#ff1744; --yellow:#ffd600;
+      --text:#c8ffc8; --muted:#3a6a3a; --border:#1a3a1a;
+    }
+    body { background:var(--bg); color:var(--text); font-family:'Rajdhani',sans-serif; }
+    body::before {
+      content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+      background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.08) 2px,rgba(0,0,0,.08) 4px);
+    }
+    .wrap { position:relative; z-index:1; max-width:1100px; margin:0 auto; padding:20px; }
+
+    .g-header { display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); padding-bottom:14px; margin-bottom:24px; }
+    .g-logo { font-size:1.4rem; font-weight:700; letter-spacing:.1em; color:var(--green); text-shadow:0 0 18px var(--green-glow); }
+    .g-logo span { color:#fff; }
+
+    .btn-g { background:transparent; border:1px solid var(--green-dim); color:var(--green); font-family:'Rajdhani',sans-serif; font-weight:700; letter-spacing:.05em; padding:6px 16px; cursor:pointer; transition:all .2s; font-size:.85rem; text-decoration:none; display:inline-block; }
+    .btn-g:hover { background:var(--green-glow); border-color:var(--green); color:var(--green); box-shadow:0 0 12px var(--green-glow); }
+    .btn-g-red { border-color:#7a0a0a; color:var(--red); }
+    .btn-g-red:hover { background:#ff174420; border-color:var(--red); color:var(--red); }
+    .btn-g-sm { font-size:.72rem; padding:3px 10px; }
+
+    .g-card { background:var(--bg2); border:1px solid var(--border); border-radius:2px; position:relative; overflow:hidden; }
+    .g-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--green-dim),transparent); }
+
+    .g-table { width:100%; border-collapse:collapse; }
+    .g-table th { font-size:.7rem; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); padding:10px 16px; border-bottom:1px solid var(--border); text-align:left; }
+    .g-table td { padding:12px 16px; border-bottom:1px solid #0f1a0f; vertical-align:middle; }
+    .g-table tr:last-child td { border-bottom:none; }
+    .g-table tr:hover td { background:var(--bg3); }
+
+    .plat-badge { font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; border:1px solid var(--border); color:var(--muted); padding:2px 7px; border-radius:1px; }
+    .g-section-title { font-size:.7rem; letter-spacing:.15em; text-transform:uppercase; color:var(--muted); padding:14px 18px 6px; }
+
+    .status-active   { color:var(--green); font-size:.8rem; }
+    .status-inactive { color:#555; font-size:.8rem; }
+
+    .g-modal .modal-content { background:var(--bg2); color:var(--text); border:1px solid var(--border); border-radius:2px; }
+    .g-modal .modal-header  { border-bottom:1px solid var(--border); }
+    .g-modal .modal-footer  { border-top:1px solid var(--border); }
+    .g-modal .form-control, .g-modal .form-select {
+      background:var(--bg) !important; color:var(--text) !important;
+      border:1px solid var(--border) !important; border-radius:2px;
+      font-family:'Rajdhani',sans-serif;
+    }
+    .g-modal .form-control:focus, .g-modal .form-select:focus {
+      border-color:var(--green-dim) !important; box-shadow:0 0 0 2px var(--green-glow) !important;
+    }
+    .g-modal label { font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
+    .g-modal .form-select option { background:var(--bg2); }
+
+    .cred-fields { display:none; }
+    .cred-fields.active { display:block; }
+    .manual-note { color:var(--muted); font-size:.85rem; padding:10px 0; font-style:italic; }
+
+    .mono { font-family:'Share Tech Mono',monospace; font-size:.8rem; color:var(--muted); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="g-header">
+    <div>
+      <div class="g-logo">🦍 ADS <span>GORILLA</span></div>
+      <small class="mono">управление кабинетами</small>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="/" class="btn-g">← Дашборд</a>
+      <button class="btn-g" data-bs-toggle="modal" data-bs-target="#addModal">+ Добавить кабинет</button>
+    </div>
+  </div>
+
+  <div class="g-card">
+    <div class="g-section-title">Подключённые кабинеты</div>
+    <table class="g-table">
+      <thead>
+        <tr>
+          <th>Название</th>
+          <th>Платформа</th>
+          <th>Статус</th>
+          <th>Добавлен</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for acc in accounts %}
+        <tr>
+          <td class="fw-bold">{{ acc.name }}</td>
+          <td>
+            <span class="plat-badge">
+              {{ platform_icons[acc.platform] }} {{ platform_labels[acc.platform] }}
+            </span>
+          </td>
+          <td>
+            {% if acc.is_active %}
+              <span class="status-active">● Активен</span>
+            {% else %}
+              <span class="status-inactive">● Отключён</span>
+            {% endif %}
+          </td>
+          <td class="mono">{{ acc.created_at.strftime('%d.%m.%Y') if acc.created_at else '—' }}</td>
+          <td>
+            <div class="d-flex gap-2">
+              <form action="/accounts/{{ acc.id }}/toggle" method="post" class="d-inline">
+                <button class="btn-g btn-g-sm" type="submit">
+                  {{ "⏸ Откл" if acc.is_active else "▶ Вкл" }}
+                </button>
+              </form>
+              <form action="/accounts/{{ acc.id }}/delete" method="post" class="d-inline"
+                onsubmit="return confirm('Удалить {{ acc.name }}? Статистика тоже удалится.')">
+                <button class="btn-g btn-g-red btn-g-sm" type="submit">✕ Удалить</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5" class="text-center py-4" style="color:var(--muted);font-style:italic">
+            Нет кабинетов. Нажмите «+ Добавить».
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- Add Account Modal -->
+<div class="modal fade g-modal" id="addModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="mb-0">+ Добавить рекламный кабинет</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="/accounts/add" method="post">
+        <div class="modal-body">
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label>Название кабинета</label>
+              <input type="text" name="name" class="form-control" placeholder="Нутра Meta, Гемблинг TT..." required>
+            </div>
+            <div class="col-md-6">
+              <label>Платформа</label>
+              <select name="platform" id="platformSelect" class="form-select" onchange="showFields(this.value)" required>
+                <option value="">— выбрать —</option>
+                {% for p in platforms %}
+                <option value="{{ p }}">{{ platform_icons[p] }} {{ platform_labels[p] }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <!-- Meta fields -->
+          <div class="cred-fields" id="fields-meta">
+            <div class="row g-2">
+              <div class="col-12">
+                <label>Access Token</label>
+                <input type="text" name="access_token" class="form-control" placeholder="EAABwzLixnjYBO...">
+              </div>
+              <div class="col-12">
+                <label>Ad Account ID</label>
+                <input type="text" name="account_id" class="form-control" placeholder="act_123456789">
+              </div>
+            </div>
+          </div>
+
+          <!-- Google fields -->
+          <div class="cred-fields" id="fields-google">
+            <div class="row g-2">
+              <div class="col-12">
+                <label>Developer Token</label>
+                <input type="text" name="developer_token" class="form-control" placeholder="aBcDeFgHiJ...">
+              </div>
+              <div class="col-md-6">
+                <label>Client ID</label>
+                <input type="text" name="client_id" class="form-control" placeholder="123456.apps.googleusercontent.com">
+              </div>
+              <div class="col-md-6">
+                <label>Client Secret</label>
+                <input type="password" name="client_secret" class="form-control" placeholder="GOCSPX-...">
+              </div>
+              <div class="col-12">
+                <label>Refresh Token</label>
+                <input type="text" name="refresh_token" class="form-control" placeholder="1//0dAB...">
+              </div>
+              <div class="col-12">
+                <label>Customer ID (без дефисов)</label>
+                <input type="text" name="customer_id" class="form-control" placeholder="1234567890">
+              </div>
+            </div>
+          </div>
+
+          <!-- TikTok fields -->
+          <div class="cred-fields" id="fields-tiktok">
+            <div class="row g-2">
+              <div class="col-12">
+                <label>Access Token</label>
+                <input type="text" name="access_token" class="form-control" placeholder="96c4b...">
+              </div>
+              <div class="col-12">
+                <label>Advertiser ID</label>
+                <input type="text" name="advertiser_id" class="form-control" placeholder="7123456789012">
+              </div>
+            </div>
+          </div>
+
+          <!-- Manual platforms -->
+          <div class="cred-fields" id="fields-telegram">
+            <div class="manual-note">
+              ✈️ Telegram Ads — API не доступен публично.<br>
+              Статистику вводите вручную через кнопку «+ ввести» на дашборде.
+            </div>
+          </div>
+          <div class="cred-fields" id="fields-trafficjunky">
+            <div class="manual-note">
+              🔞 TrafficJunky — статистику вводите вручную.<br>
+              В будущем можно подключить через API ключ.
+            </div>
+          </div>
+          <div class="cred-fields" id="fields-manual">
+            <div class="manual-note">
+              📊 Произвольный источник — статистику вводите вручную на дашборде.
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-g btn-g-red" data-bs-dismiss="modal">Отмена</button>
+          <button type="submit" class="btn-g">Сохранить кабинет</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function showFields(platform) {
+    document.querySelectorAll('.cred-fields').forEach(el => el.classList.remove('active'));
+    if (platform) {
+      const el = document.getElementById('fields-' + platform);
+      if (el) el.classList.add('active');
+    }
+  }
+</script>
+</body>
+</html>

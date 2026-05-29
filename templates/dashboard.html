@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>🦍 ADS GORILLA</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@500;700&display=swap');
+
+    :root {
+      --bg:        #060a06;
+      --bg2:       #0b120b;
+      --bg3:       #0f1a0f;
+      --green:     #00e676;
+      --green-dim: #00994d;
+      --green-glow:#00e67640;
+      --red:       #ff1744;
+      --yellow:    #ffd600;
+      --gray:      #2a3a2a;
+      --text:      #c8ffc8;
+      --muted:     #3a6a3a;
+      --border:    #1a3a1a;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 15px;
+      min-height: 100vh;
+    }
+
+    /* scanline overlay */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,.08) 2px,
+        rgba(0,0,0,.08) 4px
+      );
+    }
+
+    .wrap { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 20px; }
+
+    /* ── Header ── */
+    .g-header {
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 14px; margin-bottom: 24px;
+    }
+    .g-logo {
+      font-size: 1.6rem; font-weight: 700; letter-spacing: .1em;
+      color: var(--green);
+      text-shadow: 0 0 18px var(--green-glow), 0 0 40px var(--green-glow);
+    }
+    .g-logo span { color: #fff; }
+    .g-date { font-family: 'Share Tech Mono', monospace; color: var(--muted); font-size: .8rem; }
+
+    /* ── Buttons ── */
+    .btn-g {
+      background: transparent; border: 1px solid var(--green-dim);
+      color: var(--green); font-family: 'Rajdhani', sans-serif;
+      font-weight: 700; letter-spacing: .05em; padding: 6px 16px;
+      cursor: pointer; transition: all .2s; font-size: .85rem;
+      text-decoration: none; display: inline-block;
+    }
+    .btn-g:hover { background: var(--green-glow); border-color: var(--green); color: var(--green); box-shadow: 0 0 12px var(--green-glow); }
+    .btn-g-red { border-color: #7a0a0a; color: var(--red); }
+    .btn-g-red:hover { background: #ff174420; border-color: var(--red); color: var(--red); box-shadow: 0 0 12px #ff174440; }
+
+    /* ── Cards ── */
+    .g-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      position: relative;
+      overflow: hidden;
+    }
+    .g-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--green-dim), transparent);
+    }
+
+    /* ── Total strip ── */
+    .total-strip {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 1px; background: var(--border); margin-bottom: 24px;
+    }
+    .total-cell {
+      background: var(--bg2); padding: 18px 20px;
+    }
+    .total-val {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 2rem; color: var(--green);
+      text-shadow: 0 0 20px var(--green-glow);
+      line-height: 1;
+    }
+    .total-lbl {
+      font-size: .7rem; color: var(--muted); letter-spacing: .1em;
+      text-transform: uppercase; margin-top: 4px;
+    }
+
+    /* ── Table ── */
+    .g-table { width: 100%; border-collapse: collapse; }
+    .g-table th {
+      font-size: .7rem; letter-spacing: .12em; text-transform: uppercase;
+      color: var(--muted); padding: 10px 14px; border-bottom: 1px solid var(--border);
+      font-weight: 500; text-align: left;
+    }
+    .g-table td { padding: 12px 14px; border-bottom: 1px solid #0f1a0f; vertical-align: middle; }
+    .g-table tr:last-child td { border-bottom: none; }
+    .g-table tr:hover td { background: var(--bg3); }
+
+    .mono { font-family: 'Share Tech Mono', monospace; }
+
+    .val-spend { font-size: 1.1rem; color: var(--green); font-family: 'Share Tech Mono', monospace; }
+    .val-neutral { font-family: 'Share Tech Mono', monospace; color: #8fa; }
+
+    .chg-up   { color: var(--green); font-size: .8rem; }
+    .chg-down { color: var(--red);   font-size: .8rem; }
+    .chg-zero { color: var(--muted); font-size: .8rem; }
+
+    /* ── Status dots ── */
+    .dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      display: inline-block; flex-shrink: 0;
+    }
+    .dot-green  { background: var(--green); box-shadow: 0 0 8px var(--green); }
+    .dot-yellow { background: var(--yellow); box-shadow: 0 0 8px var(--yellow); }
+    .dot-red    { background: var(--red); box-shadow: 0 0 8px var(--red); animation: blink 1s infinite; }
+    .dot-gray   { background: var(--gray); }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    /* ── Platform badge ── */
+    .plat-badge {
+      font-size: .68rem; letter-spacing: .08em; text-transform: uppercase;
+      border: 1px solid var(--border); color: var(--muted);
+      padding: 2px 7px; border-radius: 1px;
+    }
+
+    /* ── Chart ── */
+    .chart-wrap { padding: 20px 20px 10px; }
+    .g-section-title {
+      font-size: .7rem; letter-spacing: .15em; text-transform: uppercase;
+      color: var(--muted); padding: 14px 20px 0;
+    }
+
+    /* ── Modal ── */
+    .g-modal .modal-content {
+      background: var(--bg2); color: var(--text);
+      border: 1px solid var(--border); border-radius: 2px;
+    }
+    .g-modal .modal-header { border-bottom: 1px solid var(--border); padding: 14px 20px; }
+    .g-modal .modal-footer { border-top: 1px solid var(--border); padding: 12px 20px; }
+    .g-modal .form-control, .g-modal .form-select {
+      background: var(--bg) !important; color: var(--text) !important;
+      border: 1px solid var(--border) !important; border-radius: 2px;
+      font-family: 'Rajdhani', sans-serif; font-size: .95rem;
+    }
+    .g-modal .form-control:focus, .g-modal .form-select:focus {
+      border-color: var(--green-dim) !important;
+      box-shadow: 0 0 0 2px var(--green-glow) !important;
+    }
+    .g-modal label { font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+    .g-modal .form-select option { background: var(--bg2); }
+
+    /* ── No data ── */
+    .no-data { color: var(--muted); font-size: .85rem; font-style: italic; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <div class="g-header">
+    <div>
+      <div class="g-logo">🦍 ADS <span>GORILLA</span></div>
+      <div class="g-date">{{ today }} &nbsp;·&nbsp; {{ account_count }} кабинетов</div>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+      <a href="/accounts" class="btn-g">⚙ Кабинеты</a>
+      <button class="btn-g" onclick="syncAll(this)">↻ Синхронизировать</button>
+    </div>
+  </div>
+
+  <!-- Total strip -->
+  <div class="total-strip">
+    <div class="total-cell">
+      <div class="total-val">${{ "%.0f"|format(totals.spend) }}</div>
+      <div class="total-lbl">Расход сегодня</div>
+    </div>
+    <div class="total-cell">
+      <div class="total-val">{{ "%.1f"|format(totals.impressions / 1000) }}k</div>
+      <div class="total-lbl">Показы</div>
+    </div>
+    <div class="total-cell">
+      <div class="total-val">{{ "{:,}".format(totals.clicks) }}</div>
+      <div class="total-lbl">Клики</div>
+    </div>
+    <div class="total-cell">
+      <div class="total-val">{{ "%.2f"|format(total_ctr) }}%</div>
+      <div class="total-lbl">CTR средний</div>
+    </div>
+  </div>
+
+  <!-- Accounts table -->
+  <div class="g-card mb-4">
+    <div class="g-section-title">Все кабинеты — статистика сегодня</div>
+    <div style="overflow-x:auto">
+      <table class="g-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Кабинет</th>
+            <th>Платформа</th>
+            <th>Расход</th>
+            <th>vs вчера</th>
+            <th>CTR</th>
+            <th>Клики</th>
+            <th>Показы</th>
+            <th>Конверсии</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in rows %}
+          <tr>
+            <td><span class="dot dot-{{ r.status }}"></span></td>
+            <td class="fw-bold">{{ r.account.name }}</td>
+            <td><span class="plat-badge">{{ r.icon }} {{ r.account.platform }}</span></td>
+
+            {% if r.today %}
+              <td class="val-spend">${{ "%.2f"|format(r.today.spend) }}</td>
+              <td>
+                {% if r.yesterday and r.yesterday.spend > 0 %}
+                  {% set pct = ((r.today.spend - r.yesterday.spend) / r.yesterday.spend * 100)|round(1) %}
+                  <span class="{{ 'chg-up' if pct >= 0 else 'chg-down' }}">
+                    {{ "+" if pct >= 0 else "" }}{{ pct }}%
+                  </span>
+                {% else %}
+                  <span class="chg-zero">—</span>
+                {% endif %}
+              </td>
+              <td class="val-neutral">{{ "%.2f"|format(r.today.ctr) }}%</td>
+              <td class="val-neutral">{{ "{:,}".format(r.today.clicks) }}</td>
+              <td class="val-neutral">{{ "%.1f"|format(r.today.impressions / 1000) }}k</td>
+              <td class="val-neutral">{{ r.today.conversions }}</td>
+            {% else %}
+              <td colspan="6" class="no-data">нет данных</td>
+            {% endif %}
+
+            <td>
+              {% if r.account.platform in ['telegram','trafficjunky','manual'] %}
+              <button class="btn-g" style="font-size:.75rem;padding:3px 10px"
+                onclick="openManual({{ r.account.id }}, '{{ r.account.name }}')">+ ввести</button>
+              {% else %}
+              <button class="btn-g" style="font-size:.75rem;padding:3px 10px"
+                onclick="syncOne({{ r.account.id }}, this)">↻</button>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="10" class="text-center py-4 no-data">
+              Нет кабинетов. <a href="/accounts" style="color:var(--green)">Добавить</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <div class="g-card">
+    <div class="g-section-title">Расход по дням — 7 дней</div>
+    <div class="chart-wrap">
+      <canvas id="chart" height="70"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<!-- Manual stats modal -->
+<div class="modal fade g-modal" id="manualModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="mb-0" id="manualTitle">Ввести статистику</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="/manual-stats" method="post">
+        <input type="hidden" name="account_id" id="manualAccountId">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label>Дата</label>
+            <input type="date" name="date_str" class="form-control" value="{{ today }}">
+          </div>
+          <div class="row g-2">
+            <div class="col-6">
+              <label>Показы</label>
+              <input type="number" name="impressions" class="form-control" value="0" min="0">
+            </div>
+            <div class="col-6">
+              <label>Клики</label>
+              <input type="number" name="clicks" class="form-control" value="0" min="0">
+            </div>
+            <div class="col-12">
+              <label>Расход ($)</label>
+              <input type="number" name="spend" step="0.01" class="form-control" value="0" min="0">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-g btn-g-red" data-bs-dismiss="modal">Отмена</button>
+          <button type="submit" class="btn-g">Сохранить</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const cd = {{ chart_data | tojson }};
+
+  Chart.defaults.color = '#3a6a3a';
+  Chart.defaults.font.family = "'Share Tech Mono', monospace";
+
+  new Chart(document.getElementById('chart'), {
+    type: 'line',
+    data: cd,
+    options: {
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: '#3a7a3a', boxWidth: 10, font: { size: 11 } } },
+        tooltip: {
+          backgroundColor: '#0b120b',
+          borderColor: '#1a3a1a', borderWidth: 1,
+          callbacks: { label: ctx => ' ' + ctx.dataset.label + ': $' + ctx.parsed.y }
+        }
+      },
+      scales: {
+        x: { ticks: { color: '#2a5a2a' }, grid: { color: '#0f1a0f' } },
+        y: { ticks: { color: '#2a5a2a', callback: v => '$' + v }, grid: { color: '#0f1a0f' } },
+      }
+    }
+  });
+
+  async function syncAll(btn) {
+    btn.disabled = true; btn.textContent = '⏳ ...';
+    await fetch('/sync', { method: 'POST' });
+    location.reload();
+  }
+
+  async function syncOne(id, btn) {
+    btn.disabled = true; btn.textContent = '⏳';
+    await fetch(`/accounts/${id}/sync`, { method: 'POST' });
+    location.reload();
+  }
+
+  function openManual(id, name) {
+    document.getElementById('manualAccountId').value = id;
+    document.getElementById('manualTitle').textContent = '+ ' + name;
+    new bootstrap.Modal(document.getElementById('manualModal')).show();
+  }
+</script>
+</body>
+</html>
