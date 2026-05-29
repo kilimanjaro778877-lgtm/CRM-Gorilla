@@ -174,6 +174,43 @@
     .g-modal label { font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
     .g-modal .form-select option { background: var(--bg2); }
 
+    /* ── Creatives strip ── */
+    .creatives-wrap {
+      display: flex; gap: 12px; overflow-x: auto;
+      padding: 14px 16px 16px; scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    .creatives-wrap::-webkit-scrollbar { height: 4px; }
+    .creatives-wrap::-webkit-scrollbar-track { background: transparent; }
+    .creatives-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .cr-card {
+      flex: 0 0 180px; background: var(--bg3);
+      border: 1px solid var(--border); border-radius: 2px;
+      overflow: hidden; transition: border-color .2s;
+    }
+    .cr-card:hover { border-color: var(--green-dim); }
+
+    .cr-img-wrap { width: 100%; height: 120px; overflow: hidden; background: #0a120a; }
+    .cr-img { width: 100%; height: 100%; object-fit: cover; }
+    .cr-img-placeholder {
+      width: 100%; height: 100%; display: flex;
+      align-items: center; justify-content: center;
+      font-size: 2.5rem; color: var(--muted);
+    }
+    .cr-body { padding: 10px 10px 12px; }
+    .cr-name {
+      font-size: .8rem; font-weight: 600; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+    .cr-account { font-size: .68rem; color: var(--muted); margin-bottom: 8px; }
+    .cr-metrics { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+    .cr-spend { font-family: 'Share Tech Mono', monospace; color: var(--green); font-size: .85rem; }
+    .cr-ctr { font-family: 'Share Tech Mono', monospace; color: #8fa; font-size: .8rem; }
+    .cr-conv { font-family: 'Share Tech Mono', monospace; color: var(--yellow); font-size: .8rem; }
+    .cr-sep { color: var(--border); font-size: .7rem; }
+
     /* ── No data ── */
     .no-data { color: var(--muted); font-size: .85rem; font-style: italic; }
   </style>
@@ -212,6 +249,39 @@
       <div class="total-lbl">CTR средний</div>
     </div>
   </div>
+
+  <!-- Top Creatives -->
+  {% if top_creatives %}
+  <div class="g-card mb-4">
+    <div class="g-section-title">ТОП КРЕАТИВЫ — ПО РАСХОДУ СЕГОДНЯ</div>
+    <div class="creatives-wrap">
+      {% for creative, account in top_creatives %}
+      <div class="cr-card">
+        <div class="cr-img-wrap">
+          {% if creative.image_url %}
+          <img src="{{ creative.image_url }}" alt="{{ creative.ad_name }}" class="cr-img" loading="lazy">
+          {% else %}
+          <div class="cr-img-placeholder">{{ PLATFORM_ICONS.get(account.platform, '📊') }}</div>
+          {% endif %}
+        </div>
+        <div class="cr-body">
+          <div class="cr-name" title="{{ creative.ad_name }}">{{ creative.ad_name[:40] }}{% if creative.ad_name|length > 40 %}…{% endif %}</div>
+          <div class="cr-account">{{ account.name }}</div>
+          <div class="cr-metrics">
+            <span class="cr-spend">${{ "%.0f"|format(creative.spend) }}</span>
+            <span class="cr-sep">·</span>
+            <span class="cr-ctr">{{ "%.2f"|format(creative.ctr) }}%</span>
+            {% if creative.conversions > 0 %}
+            <span class="cr-sep">·</span>
+            <span class="cr-conv">{{ creative.conversions }} conv</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
 
   <!-- Accounts table -->
   <div class="g-card mb-4">

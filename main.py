@@ -10,7 +10,7 @@ from jinja2 import Environment, FileSystemLoader
 from sqlalchemy.orm import Session
 
 from database import Base, engine, get_db
-from models import AdAccount, AdStats
+from models import AdAccount, AdStats, AdCreative
 from adapters import PLATFORM_LABELS, PLATFORM_ICONS, PLATFORM_FIELDS, MANUAL_PLATFORMS
 from scheduler import start_scheduler, run_sync, sync_account
 
@@ -65,13 +65,23 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
 
     chart_data = _chart_data(db, today, accounts)
 
+    top_creatives = (
+        db.query(AdCreative, AdAccount)
+        .join(AdAccount, AdCreative.account_id == AdAccount.id)
+        .filter(AdCreative.date == today)
+        .order_by(AdCreative.spend.desc())
+        .limit(10)
+        .all()
+    )
+
     return templates.TemplateResponse(request, "dashboard.html", {
-        "rows":          rows,
-        "totals":        totals_today,
-        "total_ctr":     total_ctr,
-        "chart_data":    chart_data,
-        "today":         today,
-        "account_count": len(accounts),
+        "rows":           rows,
+        "totals":         totals_today,
+        "total_ctr":      total_ctr,
+        "chart_data":     chart_data,
+        "today":          today,
+        "account_count":  len(accounts),
+        "top_creatives":  top_creatives,
     })
 
 
