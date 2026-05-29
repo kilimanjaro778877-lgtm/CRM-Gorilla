@@ -94,8 +94,11 @@ def dashboard(request: Request, period: str = "today", db: Session = Depends(get
             "icon":    PLATFORM_ICONS.get(acc.platform, "📊"),
         })
 
-    total_ctr    = (totals["clicks"] / totals["impressions"] * 100) if totals["impressions"] > 0 else 0
-    total_pct    = ((totals["spend"] - prev_totals["spend"]) / prev_totals["spend"] * 100) if prev_totals["spend"] > 0 else None
+    total_ctr  = (totals["clicks"] / totals["impressions"] * 100) if totals["impressions"] > 0 else 0
+    total_cpc  = (totals["spend"] / totals["clicks"]) if totals["clicks"] > 0 else 0
+    total_cpm  = (totals["spend"] / totals["impressions"] * 1000) if totals["impressions"] > 0 else 0
+    total_cpa  = (totals["spend"] / totals["conversions"]) if totals["conversions"] > 0 else 0
+    total_pct  = ((totals["spend"] - prev_totals["spend"]) / prev_totals["spend"] * 100) if prev_totals["spend"] > 0 else None
 
     chart_data   = _chart_data(db, today, accounts)
 
@@ -112,6 +115,9 @@ def dashboard(request: Request, period: str = "today", db: Session = Depends(get
         "rows":           rows,
         "totals":         totals,
         "total_ctr":      total_ctr,
+        "total_cpc":      total_cpc,
+        "total_cpm":      total_cpm,
+        "total_cpa":      total_cpa,
         "total_pct":      total_pct,
         "chart_data":     chart_data,
         "today":          today,

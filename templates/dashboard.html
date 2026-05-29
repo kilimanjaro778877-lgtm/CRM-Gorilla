@@ -70,6 +70,7 @@
 
     /* ── KPI cards ── */
     .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    @media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
     .kpi-card {
       background: var(--card); border: 1px solid var(--border);
       border-radius: 12px; padding: 20px;
@@ -204,7 +205,7 @@
         <span class="period-label">{{ date_from.strftime('%d.%m') }}{% if date_from != date_to %} — {{ date_to.strftime('%d.%m.%Y') }}{% else %}, {{ date_to.strftime('%Y') }}{% endif %}</span>
       </div>
 
-      <!-- KPI -->
+      <!-- KPI row 1 -->
       <div class="kpi-grid">
         <div class="kpi-card">
           <div class="kpi-label">Расход</div>
@@ -214,23 +215,47 @@
             {{ "▲" if total_pct >= 0 else "▼" }} {{ "%.1f"|format(total_pct|abs) }}% vs пред. период
           </div>
           {% else %}
-          <div class="kpi-chg neutral">— нет данных для сравнения</div>
+          <div class="kpi-chg neutral">нет данных для сравнения</div>
           {% endif %}
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Показы</div>
           <div class="kpi-val">{{ "%.1f"|format(totals.impressions / 1000) }}k</div>
-          <div class="kpi-chg neutral">за период</div>
+          <div class="kpi-chg neutral">суммарно за период</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Клики</div>
           <div class="kpi-val">{{ "{:,}".format(totals.clicks) }}</div>
-          <div class="kpi-chg neutral">за период</div>
+          <div class="kpi-chg neutral">суммарно за период</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-label">CTR</div>
+          <div class="kpi-label">Конверсии</div>
+          <div class="kpi-val">{{ "{:,}".format(totals.conversions) }}</div>
+          <div class="kpi-chg neutral">суммарно за период</div>
+        </div>
+      </div>
+
+      <!-- KPI row 2 -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">CTR средний</div>
           <div class="kpi-val">{{ "%.2f"|format(total_ctr) }}%</div>
-          <div class="kpi-chg neutral">средний</div>
+          <div class="kpi-chg neutral">клики / показы × 100</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">CPC средний</div>
+          <div class="kpi-val">{% if total_cpc > 0 %}${{ "%.2f"|format(total_cpc) }}{% else %}—{% endif %}</div>
+          <div class="kpi-chg neutral">расход / клики</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">CPM средний</div>
+          <div class="kpi-val">{% if total_cpm > 0 %}${{ "%.2f"|format(total_cpm) }}{% else %}—{% endif %}</div>
+          <div class="kpi-chg neutral">расход / 1000 показов</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">CPA средний</div>
+          <div class="kpi-val">{% if total_cpa > 0 %}${{ "%.2f"|format(total_cpa) }}{% else %}—{% endif %}</div>
+          <div class="kpi-chg neutral">расход / конверсии</div>
         </div>
       </div>
 
@@ -272,6 +297,8 @@
                 <th>Расход</th>
                 <th>Изм.</th>
                 <th>CTR</th>
+                <th>CPC</th>
+                <th>CPM</th>
                 <th>Клики</th>
                 <th>Показы</th>
                 <th>Конв.</th>
@@ -293,6 +320,8 @@
                   {% else %}<span class="val-sub">—</span>{% endif %}
                 </td>
                 <td class="val-sub">{{ "%.2f"|format(r.ctr) }}%</td>
+                <td class="val-sub">{% if r.clicks > 0 %}${{ "%.2f"|format(r.spend / r.clicks) }}{% else %}—{% endif %}</td>
+                <td class="val-sub">{% if r.impr > 0 %}${{ "%.2f"|format(r.spend / r.impr * 1000) }}{% else %}—{% endif %}</td>
                 <td class="val-sub">{{ "{:,}".format(r.clicks) }}</td>
                 <td class="val-sub">{{ "%.1f"|format(r.impr / 1000) }}k</td>
                 <td class="val-sub">{{ r.convs }}</td>
