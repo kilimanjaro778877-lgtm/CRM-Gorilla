@@ -245,6 +245,40 @@ def global_sync():
     return {"ok": True}
 
 
+@app.post("/accounts/{account_id}/backfill")
+def backfill_account(account_id: int, days: int = 365, db: Session = Depends(get_db)):
+    from adapters.meta import get_meta_stats_daily
+    acc = db.query(AdAccount).filter(AdAccount.id == account_id).first()
+    if not acc:
+        raise HTTPException(404)
+
+    today     = date.today()
+    date_from = today - timedelta(days=days)
+
+    fetchers = {"meta": get_meta_stats_daily}
+    fn = fetchers.get(acc.platform)
+    if not fn:
+        return {"ok": False, "reason": f"backfill not supported for {acc.platform}"}
+
+    rows = fn(acc.credentials, date_from, today)
+    saved = 0
+    for r in rows:
+        stat_date = r.pop("date")
+        existing  = db.query(AdStats).filter(
+            AdStats.account_id == acc.id,
+            AdStats.date == stat_date,
+        ).first()
+        if existing:
+            for k, v in r.items():
+                setattr(existing, k, v)
+        else:
+            db.add(AdStats(account_id=acc.id, date=stat_date, **r))
+        saved += 1
+
+    db.commit()
+    return {"ok": True, "saved": saved, "account": acc.name}
+
+
 # ── Helpers ────────────────────────────────────────────────────────────────
 
 def _status_val(spend: float, prev_spend: float) -> str:
