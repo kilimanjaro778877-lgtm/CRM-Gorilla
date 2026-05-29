@@ -6,6 +6,7 @@ from datetime import date, timedelta
 from fastapi import FastAPI, Request, Depends, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from jinja2 import Environment, FileSystemLoader
 from sqlalchemy.orm import Session
 
 from database import Base, engine, get_db
@@ -17,7 +18,8 @@ logging.basicConfig(level=logging.INFO)
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Ads Gorilla")
-templates = Jinja2Templates(directory="templates")
+_jinja_env = Environment(loader=FileSystemLoader("templates"), cache_size=0, auto_reload=True)
+templates = Jinja2Templates(env=_jinja_env)
 
 
 @app.on_event("startup")
@@ -63,8 +65,7 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
 
     chart_data = _chart_data(db, today, accounts)
 
-    return templates.TemplateResponse("dashboard.html", {
-        "request":       request,
+    return templates.TemplateResponse(request, "dashboard.html", {
         "rows":          rows,
         "totals":        totals_today,
         "total_ctr":     total_ctr,
@@ -79,8 +80,7 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
 @app.get("/accounts", response_class=HTMLResponse)
 def accounts_page(request: Request, db: Session = Depends(get_db)):
     accounts = db.query(AdAccount).order_by(AdAccount.created_at.desc()).all()
-    return templates.TemplateResponse("accounts.html", {
-        "request":        request,
+    return templates.TemplateResponse(request, "accounts.html", {
         "accounts":       accounts,
         "platform_labels": PLATFORM_LABELS,
         "platform_icons":  PLATFORM_ICONS,
